@@ -1,0 +1,21 @@
+
+PENJELASAN ALUR AUTENTIKASI DAN AUTHORIZATION
+
+Fitur authentikasi menggunakan Breeze, authorization dengan kombinasi permainan axios
+
+form login get csrf untuk triger dan memberitahu Breeze
+
+form mengirim data email dan password untuk divalidasi, breeze sudah melakukan konfigurasi otomatis ke table user bawaan laravel saat instalasi
+
+jika validasi berhasil maka backend akan generate session untuk diterapkain di sistem.
+
+Request menggunakan axios, setiap request melalui pemeriksaan di beforeEach router/index.js yang terhubung dengan ../store/auth.js yang merupakan state pinia untuk menyimpan kondisi authorization.
+
+
+
+
+beforeEach hanya berjalan saat user pindah router vue, misal dari /dashboard ke /admin. beforeEach digunakan untuk pintu keamanan autentikasi user mana yang boleh mengakses suatu halaman. beforeEach juga berjalan saat user melakukan reload manual di browser yang otomatis akan mereset nila pinia, tapi karena beforeEach dijalankan maka akan melakukan getUser(). jika getUser berhasil nili pinia akan terisi kembali dan user dipersilahkan menuju ke halaman yang ingin dituju, jika session habis maka fungsi getUser akan mengembalikan nilai error dan nilai pinia isLoggedIn gagal terisi dengan nilai true sehingga meredirect user ke halaman login pada fungsi if di dalam beforeEach.
+
+
+beforeEach hanya menangani kemanan akses halaman di sisi frontend, yang akan menangani pengecekkan session pada setiap request adalah method interception bawaan dari axios pada file axios.js. methode interception otomatis ikut dipanggil pada setiap request yang menggunakan axios.
+

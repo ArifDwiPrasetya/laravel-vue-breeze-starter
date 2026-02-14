@@ -23,6 +23,11 @@ const routes = [
         component: DashboardView,
         meta: { authOnly: true }, // Wajib login
     },
+    {
+        path: "/:catchall(.*)*",
+        name: "Not Found",
+        component: () => import("../pages/Error.vue"),
+    },
 ];
 
 const router = createRouter({
@@ -30,24 +35,30 @@ const router = createRouter({
     routes,
 });
 
+// router/index.js
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
 
-    // Pastikan kita sudah mencoba mengambil data user jika statusnya masih kosong
-    if (authStore.user === null) {
+    // 1. Cek dulu apakah rute yang dituju butuh auth atau tidak
+    const requiresAuth = to.meta.authOnly;
+    const isGuestOnly = to.meta.guestOnly;
+
+    // 2. HANYA panggil getUser jika user belum login DAN rute memang butuh proteksi
+    // Ini mencegah getUser dipanggil terus-menerus di halaman login
+    if (authStore.user === null && requiresAuth) {
         await authStore.getUser();
     }
 
-    // Jika rute butuh AUTH tapi user belum login
-    if (to.meta.authOnly && !authStore.isLoggedIn) {
-        next({ name: "login" });
+    // 3. Logika pengalihan
+    if (requiresAuth && !authStore.isLoggedIn) {
+        return next({ name: "login" });
     }
-    // Jika rute khusus GUEST (seperti login) tapi user sudah login
-    else if (to.meta.guestOnly && authStore.isLoggedIn) {
-        next({ name: "dashboard" });
-    } else {
-        next();
+
+    if (isGuestOnly && authStore.isLoggedIn) {
+        return next({ name: "dashboard" });
     }
+
+    next();
 });
 
 export default router;

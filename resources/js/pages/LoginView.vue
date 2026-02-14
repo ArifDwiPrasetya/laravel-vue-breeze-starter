@@ -12,6 +12,7 @@
                         v-model="form.email"
                         type="email"
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        autocomplete="email"
                         required
                     />
                 </div>
@@ -22,6 +23,7 @@
                         v-model="form.password"
                         type="password"
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        autocomplete="current-password"
                         required
                     />
                 </div>
@@ -61,7 +63,7 @@ const handleLogin = async () => {
         // 2. Kirim data login ke endpoint Breeze
         await api.post("/login", form.value);
 
-        await authStore.getUser;
+        await authStore.getUser();
 
         // 3. Jika berhasil, arahkan ke dashboard
         router.push({ name: "dashboard" });

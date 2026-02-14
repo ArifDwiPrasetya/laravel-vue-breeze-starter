@@ -15,6 +15,7 @@ export const useAuthStore = defineStore("auth", {
             } catch (error) {
                 this.user = null;
                 this.isLoggedIn = false;
+                throw error; // Tetap lempar error agar bisa ditangani di komponen jika perlu
             }
         },
         async logout() {

@@ -9,30 +9,39 @@ const api = axios.create({
     },
 });
 
+// lib/axios.js
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        const { status, data } = error.response;
-
-        // 1. Tangani Sesi Habis (401 atau 419)
-        if ([401, 419].includes(status)) {
-            if (window.location.pathname !== "/login") {
-                window.location.href = "/login";
-            }
+        // Jika server mati total (tidak ada response)
+        if (!error.response) {
+            alert("Koneksi ke server terputus.");
+            return Promise.reject(error);
         }
 
-        // 2. Tangani Error Server (500)
+        const { status } = error.response;
+
+        // 1. CEK: Apakah ini sesi habis SAAT sudah login?
+        // Kita hanya redirect jika status 401/419 DAN user tidak di halaman login
+        if (
+            [401, 419].includes(status) &&
+            !window.location.pathname.includes("/login")
+        ) {
+            window.location.href = "/login";
+            return Promise.reject(error); // Tetap reject agar tidak menggantung
+        }
+
+        // 2. Jika di halaman login dan error 401/422, biarkan lolos ke Catch
+        if (
+            status === 422 ||
+            (status === 401 && window.location.pathname.includes("/login"))
+        ) {
+            return Promise.reject(error);
+        }
+
+        // 3. Error lainnya (misal 500)
         if (status === 500) {
-            alert(
-                "Terjadi kesalahan pada server. Silakan hubungi IT Support HRIS.",
-            );
-        }
-
-        // 3. Tangani Error Validasi (422)
-        // Biasanya ini untuk form yang isiannya salah
-        if (status === 422) {
-            console.log("Data tidak valid:", data.errors);
-            // Kamu bisa memicu notifikasi toast di sini
+            alert("Kesalahan Server (500)");
         }
 
         return Promise.reject(error);
